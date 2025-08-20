@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Color codes (Re-using the successful palette from the previous script)
+# Color codes
 YELLOW='\033[1;33m'     # Bold Yellow
 BOLD='\033[1m'          # General Bold
 CYAN='\033[1;36m'       # Bold Cyan
@@ -70,7 +70,6 @@ install_go_gswarm() {
 
     # Install gswarm
     echo -e "${CYAN}⚙️ Installing gswarm...${NC}"
-    # Using the correct path for gswarm as provided by you
     if go install github.com/Deep-Commit/gswarm/cmd/gswarm@latest; then
         echo -e "${GREEN}✅ gswarm installed successfully.${NC}"
     else
@@ -87,15 +86,15 @@ enter_telegram_details() {
     read -e -p "${PINK}Enter your Telegram Chat ID (e.g., 123456789): ${NC}" CHAT_ID_INPUT
     read -e -p "${PINK}Enter your Telegram Bot Token (e.g., 12345:ABC-DEF): ${NC}" BOT_TOKEN_INPUT
 
-    # Basic validation for Telegram details
     if [[ -z "$CHAT_ID_INPUT" || -z "$BOT_TOKEN_INPUT" ]]; then
         echo -e "${RED}❌ Chat ID or Bot Token cannot be empty! Please try again.${NC}"
     else
+        # Save to global variables
         TELEGRAM_CHAT_ID="$CHAT_ID_INPUT"
         TELEGRAM_BOT_TOKEN="$BOT_TOKEN_INPUT"
         echo -e "${GREEN}✅ Telegram details saved! ✨${NC}"
         echo -e "${CYAN}Chat ID: ${TELEGRAM_CHAT_ID}${NC}"
-        echo -e "${CYAN}Bot Token: ${TELEGRAM_BOT_TOKEN:0:5}****${NC}" # Masking token for display
+        echo -e "${CYAN}Bot Token: ${TELEGRAM_BOT_TOKEN:0:5}****${NC}"
     fi
 }
 
@@ -103,8 +102,8 @@ enter_eoa_wallet_address() {
     echo -e "${GREEN}========== STEP 3: ENTER EOA WALLET ADDRESS ==========${NC}"
     read -e -p "${PINK}Enter your EOA Wallet Address (e.g., 0x...): ${NC}" EOA_ADDRESS_INPUT
 
-    # Basic validation for Ethereum address (starts with 0x and is 42 chars long)
     if [[ "$EOA_ADDRESS_INPUT" =~ ^0x[a-fA-F0-9]{40}$ ]]; then
+        # Save to global variable
         EOA_WALLET_ADDRESS="$EOA_ADDRESS_INPUT"
         echo -e "${GREEN}✅ EOA address saved! 💰${NC}"
         echo -e "${CYAN}Wallet Address: ${EOA_WALLET_ADDRESS}${NC}"
@@ -123,9 +122,34 @@ run_gswarm() {
         return 1
     fi
 
-    echo -e "${CYAN}🚀 Starting gswarm...${NC}"
-    # Executing gswarm as per the provided script
-    gswarm
+    # Check if configurations are set by the user through our script
+    if [ -z "$TELEGRAM_CHAT_ID" ] || [ -z "$TELEGRAM_BOT_TOKEN" ]; then
+        echo -e "${RED}❌ Telegram Chat ID or Bot Token is not set in this script's session.${NC}"
+        echo -e "${RED}Please enter Telegram Details first (Option 2).${NC}"
+        return 1
+    fi
+    if [ -z "$EOA_WALLET_ADDRESS" ]; then
+        echo -e "${RED}❌ EOA Wallet Address is not set in this script's session.${NC}"
+        echo -e "${RED}Please enter EOA Wallet Address first (Option 3).${NC}"
+        return 1
+    fi
+
+    echo -e "${CYAN}🚀 Starting gswarm with your configured details...${NC}"
+    echo -e "${CYAN}Chat ID: ${TELEGRAM_CHAT_ID}${NC}"
+    echo -e "${CYAN}Bot Token (partial): ${TELEGRAM_BOT_TOKEN:0:5}****${NC}"
+    echo -e "${CYAN}Wallet Address: ${EOA_WALLET_ADDRESS}${NC}"
+    echo -e "${YELLOW}Note: gswarm might still prompt for details if it doesn't support command-line arguments for these.${NC}"
+    echo -e "${YELLOW}Please consult gswarm's official documentation for exact command-line options if prompted again.${NC}"
+
+    # Attempt to run gswarm with command-line arguments.
+    # *** YOU MUST VERIFY THESE ARGUMENTS WITH GSWARM'S OFFICIAL DOCUMENTATION ***
+    # Common arguments are --chat-id, --bot-token, --wallet-address.
+    # If gswarm expects a config file or other specific setup, this needs adjustment.
+
+    # Example: (Uncomment and adjust based on actual gswarm CLI options)
+    gswarm --telegram-chat-id "$TELEGRAM_CHAT_ID" --telegram-bot-token "$TELEGRAM_BOT_TOKEN" --eoa-wallet-address "$EOA_WALLET_ADDRESS"
+    # Or if it uses a single config flag, e.g., gswarm --config path/to/config.yaml
+
     echo -e "${GREEN}gswarm command executed. Monitor its output for status.${NC}"
     echo -e "${CYAN}Note: This script only starts gswarm. It might run indefinitely.${NC}"
 }
