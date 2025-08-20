@@ -32,41 +32,49 @@ install_go_gswarm() {
     echo -e "${GREEN}========== STEP 1: INSTALL GO & GSWARM ==========${NC}"
     echo -e "${CYAN}Starting Go & gswarm installation...${NC}"
 
-    # Check if Go is installed
+    # Check if Go is installed and install if not
     if ! command -v go &> /dev/null; then
-        echo -e "${GREEN}🔧 Installing Go...${NC}"
-        # Fetch the latest Go version dynamically
-        GO_VERSION=$(curl -s "https://go.dev/dl/?mode=json&limit=1" | jq -r '.[0].version')
-        GO_TARBALL="${GO_VERSION}.linux-amd64.tar.gz"
-        GO_DOWNLOAD_URL="https://go.dev/dl/${GO_TARBALL}"
-
-        echo -e "${CYAN}Downloading ${GO_VERSION}...${NC}"
-        if ! wget -q "$GO_DOWNLOAD_URL"; then
+        echo -e "${GREEN}🔧 Installing Go (version 1.22.2)...${NC}"
+        # Download and install Go version 1.22.2 as per provided script
+        if ! wget -q https://go.dev/dl/go1.22.2.linux-amd64.tar.gz; then
             echo -e "${RED}❌ Failed to download Go. Please check your internet connection.${NC}"
             return 1
         fi
-
         sudo rm -rf /usr/local/go
-        sudo tar -C /usr/local -xzf "$GO_TARBALL"
-        rm "$GO_TARBALL"
-
-        # Add Go to PATH if not already present
-        if ! grep -q "export PATH=.*:/usr/local/go/bin" "$HOME/.bashrc"; then
-            echo "export PATH=$PATH:/usr/local/go/bin" >> "$HOME/.bashrc"
-            echo -e "${GREEN}Added Go to .bashrc. Please source your .bashrc or restart your terminal.${NC}"
-        fi
-        source "$HOME/.bashrc" # Source immediately for current session
+        sudo tar -C /usr/local -xzf go1.22.2.linux-amd64.tar.gz
+        rm go1.22.2.linux-amd64.tar.gz
+        echo -e "${GREEN}Go installed successfully.${NC}"
     else
         echo -e "${GREEN}✅ Go is already installed.${NC}"
     fi
 
-    echo -e "${CYAN}Installing gswarm...${NC}"
-    # Assuming gswarm is a Go package, you'd install it like this.
-    # Replace with actual gswarm installation command if different (e.g., git clone, make)
-    if go install github.com/gensyn-ai/gs-client-cli/gs-client@latest; then
+    # Set Go path for current script session
+    export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
+
+    # Optional: Add to ~/.bashrc for future sessions if not already present
+    if ! grep -q "export PATH=.*:/usr/local/go/bin" "$HOME/.bashrc"; then
+        echo 'export PATH=$PATH:/usr/local/go/bin' >> "$HOME/.bashrc"
+    fi
+    if ! grep -q "export PATH=.*:$HOME/go/bin" "$HOME/.bashrc"; then
+        echo 'export PATH=$PATH:$HOME/go/bin' >> "$HOME/.bashrc"
+    fi
+    source "$HOME/.bashrc" # Source immediately for current session
+
+    # Verify Go installation
+    echo -e "${CYAN}Verifying Go installation:${NC}"
+    go version
+
+    # Create go/bin folder if needed
+    mkdir -p "$HOME/go/bin"
+    echo -e "${GREEN}Created ~/go/bin directory.${NC}"
+
+    # Install gswarm
+    echo -e "${CYAN}⚙️ Installing gswarm...${NC}"
+    # Using the correct path for gswarm as provided by you
+    if go install github.com/Deep-Commit/gswarm/cmd/gswarm@latest; then
         echo -e "${GREEN}✅ gswarm installed successfully.${NC}"
     else
-        echo -e "${RED}❌ Failed to install gswarm. Please check Go installation and gswarm repository.${NC}"
+        echo -e "${RED}❌ Failed to install gswarm. Please ensure you have internet connectivity and the repository is accessible.${NC}"
         return 1
     fi
 
@@ -105,40 +113,21 @@ enter_eoa_wallet_address() {
     fi
 }
 
-run_gensyn_swarm_roll() {
-    echo -e "${GREEN}========== STEP 4: RUN GENSYN SWARM ROLL ==========${NC}"
+run_gswarm() {
+    echo -e "${GREEN}========== STEP 4: RUN GSWARM ==========${NC}"
 
-    # Check if required details are set
-    if [ -z "$TELEGRAM_CHAT_ID" ] || [ -z "$TELEGRAM_BOT_TOKEN" ]; then
-        echo -e "${RED}❌ Telegram Chat ID or Bot Token is not set. Please configure them first (Option 2).${NC}"
-        return 1
-    fi
-    if [ -z "$EOA_WALLET_ADDRESS" ]; then
-        echo -e "${RED}❌ EOA Wallet Address is not set. Please configure it first (Option 3).${NC}"
-        return 1
-    fi
-    if ! command -v gs-client &> /dev/null; then
-        echo -e "${RED}❌ gswarm (gs-client) is not installed. Please install it first (Option 1).${NC}"
+    # Check if gswarm executable is in PATH
+    if ! command -v gswarm &> /dev/null; then
+        echo -e "${RED}❌ gswarm executable not found. Please install it first (Option 1).${NC}"
+        echo -e "${RED}Ensure Go path is set correctly and you've sourced your .bashrc.${NC}"
         return 1
     fi
 
-    echo -e "${CYAN}🚀 Starting Gensyn Swarm Roll with your configurations...${NC}"
-    echo -e "${CYAN}Telegram Chat ID: ${TELEGRAM_CHAT_ID}${NC}"
-    echo -e "${CYAN}EOA Wallet Address: ${EOA_WALLET_ADDRESS}${NC}"
-
-    # Placeholder for the actual Gensyn Swarm Roll command
-    # You will need to replace this with the real command, possibly using the variables above.
-    # Example:
-    # gs-client start --chat-id "$TELEGRAM_CHAT_ID" --bot-token "$TELEGRAM_BOT_TOKEN" --wallet-address "$EOA_WALLET_ADDRESS"
-    echo -e "${YELLOW}Please replace this placeholder with your actual Gensyn Swarm Roll command.${NC}"
-    echo -e "${YELLOW}Example: gs-client run --chat-id $TELEGRAM_CHAT_ID --bot-token $TELEGRAM_BOT_TOKEN --wallet $EOA_WALLET_ADDRESS${NC}"
-    # Example command (uncomment and modify when ready)
-    # gs-client run --chat-id "$TELEGRAM_CHAT_ID" --bot-token "$TELEGRAM_BOT_TOKEN" --wallet "$EOA_WALLET_ADDRESS"
-
-    # Add a message to indicate completion or ongoing process
-    echo -e "${GREEN}Gensyn Swarm Roll process initiated (or placeholder executed).${NC}"
-    echo -e "${CYAN}Monitor your terminal for output from the Gensyn Swarm client.${NC}"
-    return 0
+    echo -e "${CYAN}🚀 Starting gswarm...${NC}"
+    # Executing gswarm as per the provided script
+    gswarm
+    echo -e "${GREEN}gswarm command executed. Monitor its output for status.${NC}"
+    echo -e "${CYAN}Note: This script only starts gswarm. It might run indefinitely.${NC}"
 }
 
 # --- Main loop for the menu ---
@@ -150,7 +139,7 @@ while true; do
     echo -e "${YELLOW}${BOLD}║ [${YELLOW}1${NC}${BOLD}] ${PINK}📦 Install Go & gswarm            ${YELLOW}${BOLD}  ║${NC}"
     echo -e "${YELLOW}${BOLD}║ [${YELLOW}2${NC}${BOLD}] ${PINK}💬 Enter Telegram Details         ${YELLOW}${BOLD} ║${NC}"
     echo -e "${YELLOW}${BOLD}║ [${YELLOW}3${NC}${BOLD}] ${PINK}💳 Enter EOA Wallet Address      ${YELLOW}${BOLD} ║${NC}"
-    echo -e "${YELLOW}${BOLD}║ [${YELLOW}4${NC}${BOLD}] ${PINK}🚀 Run Gensyn Swarm Roll         ${YELLOW}${BOLD} ║${NC}"
+    echo -e "${YELLOW}${BOLD}║ [${YELLOW}4${NC}${BOLD}] ${PINK}🚀 Run gswarm                    ${YELLOW}${BOLD} ║${NC}"
     echo -e "${YELLOW}${BOLD}║ [${YELLOW}0${NC}${BOLD}] ${PINK}👋 Exit                           ${YELLOW}${BOLD} ║${NC}"
     echo -e "${YELLOW}${BOLD}╚═══════════════════════════════════════╝${NC}"
     echo -e "" # Add a new line for better spacing
@@ -160,7 +149,7 @@ while true; do
         1) install_go_gswarm; read -p "Press Enter to continue..." ;;
         2) enter_telegram_details; read -p "Press Enter to continue..." ;;
         3) enter_eoa_wallet_address; read -p "Press Enter to continue..." ;;
-        4) run_gensyn_swarm_roll; read -p "Press Enter to continue..." ;;
+        4) run_gswarm; read -p "Press Enter to continue..." ;;
         0)
             echo -e "🚪 Exiting... Bye! 👋"
             exit 0
