@@ -7,6 +7,7 @@ CYAN='\033[1;36m'       # Bold Cyan
 GREEN='\033[1;32m'      # Bold Green
 PINK='\033[38;5;198m'   # Deep Pink (Using 256-color code for specific shade)
 RED='\033[1;31m'        # Bold Red
+MAGENTA='\033[1;35m'    # Bold Magenta (New color for helper messages)
 NC='\033[0m'            # No Color
 
 # --- Global Variables for Configuration ---
@@ -19,7 +20,7 @@ EOA_WALLET_ADDRESS=""
 print_header() {
     clear # Clear screen to ensure header is always at the top
     echo -e "${YELLOW}${BOLD}=====================================================${NC}"
-    echo -e "${YELLOW}${BOLD} # # # # # # 🚀 GENSYN SWARM ROLL � # # # # # #${NC}"
+    echo -e "${YELLOW}${BOLD} # # # # # # 🚀 GENSYN SWARM ROLL 🚀 # # # # # #${NC}"
     echo -e "${YELLOW}${BOLD} # # # # # #   MADE BY PRODIP   # # # # # #${NC}"
     echo -e "${YELLOW}${BOLD} # # # # # #   DM TG: @prodipgo   # # # # # #${NC}"
     echo -e "${YELLOW}${BOLD}=====================================================${NC}"
@@ -39,7 +40,7 @@ install_go_gswarm() {
         if ! wget -q https://go.dev/dl/go1.22.2.linux-amd64.tar.gz; then
             echo -e "${RED}❌ Failed to download Go. Please check your internet connection.${NC}"
             return 1
-        fi
+        END_OF_GO_DOWNLOAD
         sudo rm -rf /usr/local/go
         sudo tar -C /usr/local -xzf go1.22.2.linux-amd64.tar.gz
         rm go1.22.2.linux-amd64.tar.gz
@@ -84,19 +85,27 @@ install_go_gswarm() {
 enter_telegram_and_wallet_details() { # Function name updated
     echo -e "${GREEN}========== STEP 2: ENTER TELEGRAM & WALLET DETAILS ==========${NC}"
 
+    # Prompt for Bot Token with help message
+    echo -e "${MAGENTA}💡 আপনার টেলিগ্রাম বট টোকেন @BotFather থেকে পান।${NC}"
     read -e -p "${PINK}Enter your Telegram Bot Token (e.g., 12345:ABC-DEF): ${NC}" BOT_TOKEN_INPUT
+
+    # Prompt for Chat ID with help message
+    echo -e "${MAGENTA}💡 আপনার চ্যাট আইডি @userinfobot থেকে পান।${NC}"
     read -e -p "${PINK}Enter your Telegram Chat ID (e.g., 123456789): ${NC}" CHAT_ID_INPUT
+
+    # Prompt for EOA Wallet Address with help message
+    echo -e "${MAGENTA}💡 আপনার EOA Wallet Address এখান থেকে পান: https://gensyn-tracker.shair.live/${NC}"
     read -e -p "${PINK}Enter your EOA Wallet Address (e.g., 0x...): ${NC}" EOA_ADDRESS_INPUT
 
     # Basic validation for Telegram details
     if [[ -z "$BOT_TOKEN_INPUT" || -z "$CHAT_ID_INPUT" ]]; then
-        echo -e "${RED}❌ Bot Token or Chat ID cannot be empty! Please try again.${NC}"
+        echo -e "${RED}❌ Bot Token বা Chat ID খালি রাখা যাবে না! আবার চেষ্টা করুন।${NC}"
         return 1
     fi
 
     # Basic validation for Ethereum address (starts with 0x and is 42 chars long)
     if [[ ! "$EOA_ADDRESS_INPUT" =~ ^0x[a-fA-F0-9]{40}$ ]]; then
-        echo -e "${RED}❌ Invalid EOA Wallet Address format. It should start with '0x' and be 42 characters long.${NC}"
+        echo -e "${RED}❌ EOA Wallet Address এর ফরম্যাট সঠিক নয়। এটি '0x' দিয়ে শুরু হবে এবং ৪২ অক্ষরের হবে।${NC}"
         return 1
     fi
 
@@ -104,18 +113,18 @@ enter_telegram_and_wallet_details() { # Function name updated
     TELEGRAM_CHAT_ID="$CHAT_ID_INPUT"
     EOA_WALLET_ADDRESS="$EOA_ADDRESS_INPUT"
 
-    echo -e "${GREEN}✅ Details saved successfully! ✨${NC}"
-    echo -e "${CYAN}Bot Token: ${TELEGRAM_BOT_TOKEN:0:5}****${NC}"
-    echo -e "${CYAN}Chat ID: ${TELEGRAM_CHAT_ID}${NC}"
-    echo -e "${CYAN}Wallet Address: ${EOA_WALLET_ADDRESS}${NC}"
+    echo -e "${GREEN}✅ বিবরণ সফলভাবে সংরক্ষণ করা হয়েছে! ✨${NC}"
+    echo -e "${CYAN}বট টোকেন: ${TELEGRAM_BOT_TOKEN:0:5}****${NC}"
+    echo -e "${CYAN}চ্যাট আইডি: ${TELEGRAM_CHAT_ID}${NC}"
+    echo -e "${CYAN}ওয়ালেট ঠিকানা: ${EOA_WALLET_ADDRESS}${NC}"
     return 0
 }
 
 go_discord_for_roll() { # New function for Discord link
     echo -e "${GREEN}========== STEP 3: GO DISCORD FOR ROLL ==========${NC}"
-    echo -e "${CYAN}Join the Gensyn Discord for important updates and community support:${NC}"
-    echo -e "${PINK}🔗 Discord Invite Link: https://discord.com/invite/gensyn ${NC}"
-    echo -e "${CYAN}Please open this link in your web browser.${NC}"
+    echo -e "${CYAN}গুরুত্বপূর্ণ আপডেট এবং কমিউনিটি সাপোর্টের জন্য Gensyn Discord এ যোগ দিন:${NC}"
+    echo -e "${PINK}🔗 ডিসকর্ড ইনভাইট লিঙ্ক: https://discord.com/invite/gensyn ${NC}"
+    echo -e "${CYAN}অনুগ্রহ করে আপনার ওয়েব ব্রাউজারে এই লিঙ্কটি খুলুন।${NC}"
 }
 
 
@@ -123,28 +132,28 @@ run_gswarm() {
     echo -e "${GREEN}========== STEP 4: RUN GSWARM ==========${NC}"
 
     if ! command -v gswarm &> /dev/null; then
-        echo -e "${RED}❌ gswarm executable not found. Please install it first (Option 1).${NC}"
-        echo -e "${RED}Ensure Go path is set correctly and you've sourced your .bashrc.${NC}"
+        echo -e "${RED}❌ gswarm এক্সিকিউটেবল খুঁজে পাওয়া যায়নি। অনুগ্রহ করে প্রথমে এটি ইনস্টল করুন (অপশন ১)।${NC}"
+        echo -e "${RED}নিশ্চিত করুন যে Go পাথ সঠিকভাবে সেট করা হয়েছে এবং আপনি আপনার .bashrc সোর্স করেছেন।${NC}"
         return 1
     fi
 
     # Check if configurations are set by the user through our script
     if [ -z "$TELEGRAM_CHAT_ID" ] || [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$EOA_WALLET_ADDRESS" ]; then
-        echo -e "${RED}❌ Telegram or EOA Wallet Address details are not set in this script's session.${NC}"
-        echo -e "${RED}Please enter Telegram & Wallet Details first (Option 2).${NC}"
+        echo -e "${RED}❌ টেলিগ্রাম বা EOA ওয়ালেট ঠিকানার বিবরণ এই স্ক্রিপ্টের সেশনে সেট করা নেই।${NC}"
+        echo -e "${RED}অনুগ্রহ করে প্রথমে টেলিগ্রাম ও ওয়ালেটের বিবরণ লিখুন (অপশন ২)।${NC}"
         return 1
     fi
 
-    echo -e "${CYAN}🚀 Starting gswarm with your configured details...${NC}"
-    echo -e "${CYAN}Bot Token (partial): ${TELEGRAM_BOT_TOKEN:0:5}****${NC}"
-    echo -e "${CYAN}Chat ID: ${TELEGRAM_CHAT_ID}${NC}"
-    echo -e "${CYAN}Wallet Address: ${EOA_WALLET_ADDRESS}${NC}"
+    echo -e "${CYAN}🚀 আপনার কনফিগার করা বিবরণ সহ gswarm শুরু হচ্ছে...${NC}"
+    echo -e "${CYAN}বট টোকেন (আংশিক): ${TELEGRAM_BOT_TOKEN:0:5}****${NC}"
+    echo -e "${CYAN}চ্যাট আইডি: ${TELEGRAM_CHAT_ID}${NC}"
+    echo -e "${CYAN}ওয়ালেট ঠিকানা: ${EOA_WALLET_ADDRESS}${NC}"
 
     # Corrected gswarm command with proper flags from its help output
     gswarm --telegram-chat-id "$TELEGRAM_CHAT_ID" --telegram-bot-token "$TELEGRAM_BOT_TOKEN" --eoa-address "$EOA_WALLET_ADDRESS"
 
-    echo -e "${GREEN}gswarm command executed. Monitor its output for status.${NC}"
-    echo -e "${CYAN}Note: This script only starts gswarm. It might run indefinitely.${NC}"
+    echo -e "${GREEN}gswarm কমান্ড এক্সিকিউট হয়েছে। স্ট্যাটাসের জন্য এর আউটপুট মনিটর করুন।${NC}"
+    echo -e "${CYAN}দ্রষ্টব্য: এই স্ক্রিপ্টটি শুধুমাত্র gswarm শুরু করে। এটি অনির্দিষ্টকালের জন্য চলতে পারে।${NC}"
 }
 
 # --- Main loop for the menu ---
@@ -154,8 +163,8 @@ while true; do
     echo -e "${YELLOW}${BOLD}║      🔵 GENSYN SWARM ROLL MENU 🔵    ║${NC}"
     echo -e "${YELLOW}${BOLD}╠═══════════════════════════════════════╣${NC}"
     echo -e "${YELLOW}${BOLD}║ [${YELLOW}1${NC}${BOLD}] ${PINK}📦 Install Go & gswarm            ${YELLOW}${BOLD}  ║${NC}"
-    echo -e "${YELLOW}${BOLD}║ [${YELLOW}2${NC}${BOLD}] ${PINK}💬 Enter Telegram & Wallet Details${YELLOW}${BOLD} ║${NC}" # Updated text
-    echo -e "${YELLOW}${BOLD}║ [${YELLOW}3${NC}${BOLD}] ${PINK}🗣️ Go Discord for Roll           ${YELLOW}${BOLD} ║${NC}" # New option
+    echo -e "${YELLOW}${BOLD}║ [${YELLOW}2${NC}${BOLD}] ${PINK}💬 Enter Telegram & Wallet Details${YELLOW}${BOLD} ║${NC}"
+    echo -e "${YELLOW}${BOLD}║ [${YELLOW}3${NC}${BOLD}] ${PINK}🗣️ Go Discord for Roll           ${YELLOW}${BOLD} ║${NC}"
     echo -e "${YELLOW}${BOLD}║ [${YELLOW}4${NC}${BOLD}] ${PINK}🚀 Run gswarm                    ${YELLOW}${BOLD} ║${NC}"
     echo -e "${YELLOW}${BOLD}║ [${YELLOW}0${NC}${BOLD}] ${PINK}👋 Exit                           ${YELLOW}${BOLD} ║${NC}"
     echo -e "${YELLOW}${BOLD}╚═══════════════════════════════════════╝${NC}"
@@ -164,18 +173,17 @@ while true; do
 
     case $choice in
         1) install_go_gswarm; read -p "Press Enter to continue..." ;;
-        2) enter_telegram_and_wallet_details; read -p "Press Enter to continue..." ;; # Function name updated here
-        3) go_discord_for_roll; read -p "Press Enter to continue..." ;; # New option handler
+        2) enter_telegram_and_wallet_details; read -p "Press Enter to continue..." ;;
+        3) go_discord_for_roll; read -p "Press Enter to continue..." ;;
         4) run_gswarm; read -p "Press Enter to continue..." ;;
         0)
-            echo -e "🚪 Exiting... Bye! 👋"
+            echo -e "🚪 এক্সিট হচ্ছে... বাই! 👋"
             exit 0
             ;;
         *)
-            echo -e "${RED}❌ Invalid choice! Please enter a number between 0 and 4.${NC}"
+            echo -e "${RED}❌ ভুল অপশন! অনুগ্রহ করে ০ থেকে ৪ এর মধ্যে একটি সংখ্যা দিন।${NC}"
             sleep 1
             ;;
     esac
 
 done
-�
