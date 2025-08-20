@@ -39,14 +39,14 @@ install_go_gswarm() {
         if ! wget -q https://go.dev/dl/go1.22.2.linux-amd64.tar.gz; then
             echo -e "${RED}❌ Failed to download Go. Please check your internet connection.${NC}"
             return 1
-        fi # Corrected: 'fi' was missing or misplaced in previous version leading to syntax error
+        fi # This `fi` closes the inner `if` statement correctly.
         sudo rm -rf /usr/local/go
         sudo tar -C /usr/local -xzf go1.22.2.linux-amd64.tar.gz
         rm go1.22.2.linux-amd64.tar.gz
         echo -e "${GREEN}Go installed successfully.${NC}"
     else
         echo -e "${GREEN}✅ Go is already installed.${NC}"
-    fi
+    fi # This `fi` closes the outer `if` statement correctly.
 
     # Set Go path for current script session
     export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
