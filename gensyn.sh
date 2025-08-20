@@ -13,13 +13,13 @@ NC='\033[0m'            # No Color
 # These will store user inputs for Telegram and Wallet Address
 TELEGRAM_CHAT_ID=""
 TELEGRAM_BOT_TOKEN=""
-EOA_WALLET_ADDRESS="" # Keep this name in the script for internal use
+EOA_WALLET_ADDRESS=""
 
 # --- Function to print the header ---
 print_header() {
     clear # Clear screen to ensure header is always at the top
     echo -e "${YELLOW}${BOLD}=====================================================${NC}"
-    echo -e "${YELLOW}${BOLD} # # # # # # 🚀 GENSYN SWARM ROLL 🚀 # # # # # #${NC}"
+    echo -e "${YELLOW}${BOLD} # # # # # # 🚀 GENSYN SWARM ROLL � # # # # # #${NC}"
     echo -e "${YELLOW}${BOLD} # # # # # #   MADE BY PRODIP   # # # # # #${NC}"
     echo -e "${YELLOW}${BOLD} # # # # # #   DM TG: @prodipgo   # # # # # #${NC}"
     echo -e "${YELLOW}${BOLD}=====================================================${NC}"
@@ -81,34 +81,43 @@ install_go_gswarm() {
     return 0
 }
 
-enter_telegram_details() {
-    echo -e "${GREEN}========== STEP 2: ENTER TELEGRAM DETAILS ==========${NC}"
-    read -e -p "${PINK}Enter your Telegram Chat ID (e.g., 123456789): ${NC}" CHAT_ID_INPUT
+enter_telegram_and_wallet_details() { # Function name updated
+    echo -e "${GREEN}========== STEP 2: ENTER TELEGRAM & WALLET DETAILS ==========${NC}"
+
     read -e -p "${PINK}Enter your Telegram Bot Token (e.g., 12345:ABC-DEF): ${NC}" BOT_TOKEN_INPUT
-
-    if [[ -z "$CHAT_ID_INPUT" || -z "$BOT_TOKEN_INPUT" ]]; then
-        echo -e "${RED}❌ Chat ID or Bot Token cannot be empty! Please try again.${NC}"
-    else
-        TELEGRAM_CHAT_ID="$CHAT_ID_INPUT"
-        TELEGRAM_BOT_TOKEN="$BOT_TOKEN_INPUT"
-        echo -e "${GREEN}✅ Telegram details saved! ✨${NC}"
-        echo -e "${CYAN}Chat ID: ${TELEGRAM_CHAT_ID}${NC}"
-        echo -e "${CYAN}Bot Token: ${TELEGRAM_BOT_TOKEN:0:5}****${NC}"
-    fi
-}
-
-enter_eoa_wallet_address() {
-    echo -e "${GREEN}========== STEP 3: ENTER EOA WALLET ADDRESS ==========${NC}"
+    read -e -p "${PINK}Enter your Telegram Chat ID (e.g., 123456789): ${NC}" CHAT_ID_INPUT
     read -e -p "${PINK}Enter your EOA Wallet Address (e.g., 0x...): ${NC}" EOA_ADDRESS_INPUT
 
-    if [[ "$EOA_ADDRESS_INPUT" =~ ^0x[a-fA-F0-9]{40}$ ]]; then
-        EOA_WALLET_ADDRESS="$EOA_ADDRESS_INPUT"
-        echo -e "${GREEN}✅ EOA address saved! 💰${NC}"
-        echo -e "${CYAN}Wallet Address: ${EOA_WALLET_ADDRESS}${NC}"
-    else
-        echo -e "${RED}❌ Invalid EOA Wallet Address format. It should start with '0x' and be 42 characters long.${NC}"
+    # Basic validation for Telegram details
+    if [[ -z "$BOT_TOKEN_INPUT" || -z "$CHAT_ID_INPUT" ]]; then
+        echo -e "${RED}❌ Bot Token or Chat ID cannot be empty! Please try again.${NC}"
+        return 1
     fi
+
+    # Basic validation for Ethereum address (starts with 0x and is 42 chars long)
+    if [[ ! "$EOA_ADDRESS_INPUT" =~ ^0x[a-fA-F0-9]{40}$ ]]; then
+        echo -e "${RED}❌ Invalid EOA Wallet Address format. It should start with '0x' and be 42 characters long.${NC}"
+        return 1
+    fi
+
+    TELEGRAM_BOT_TOKEN="$BOT_TOKEN_INPUT"
+    TELEGRAM_CHAT_ID="$CHAT_ID_INPUT"
+    EOA_WALLET_ADDRESS="$EOA_ADDRESS_INPUT"
+
+    echo -e "${GREEN}✅ Details saved successfully! ✨${NC}"
+    echo -e "${CYAN}Bot Token: ${TELEGRAM_BOT_TOKEN:0:5}****${NC}"
+    echo -e "${CYAN}Chat ID: ${TELEGRAM_CHAT_ID}${NC}"
+    echo -e "${CYAN}Wallet Address: ${EOA_WALLET_ADDRESS}${NC}"
+    return 0
 }
+
+go_discord_for_roll() { # New function for Discord link
+    echo -e "${GREEN}========== STEP 3: GO DISCORD FOR ROLL ==========${NC}"
+    echo -e "${CYAN}Join the Gensyn Discord for important updates and community support:${NC}"
+    echo -e "${PINK}🔗 Discord Invite Link: https://discord.com/invite/gensyn ${NC}"
+    echo -e "${CYAN}Please open this link in your web browser.${NC}"
+}
+
 
 run_gswarm() {
     echo -e "${GREEN}========== STEP 4: RUN GSWARM ==========${NC}"
@@ -119,20 +128,16 @@ run_gswarm() {
         return 1
     fi
 
-    if [ -z "$TELEGRAM_CHAT_ID" ] || [ -z "$TELEGRAM_BOT_TOKEN" ]; then
-        echo -e "${RED}❌ Telegram Chat ID or Bot Token is not set in this script's session.${NC}"
-        echo -e "${RED}Please enter Telegram Details first (Option 2).${NC}"
-        return 1
-    fi
-    if [ -z "$EOA_WALLET_ADDRESS" ]; then
-        echo -e "${RED}❌ EOA Wallet Address is not set in this script's session.${NC}"
-        echo -e "${RED}Please enter EOA Wallet Address first (Option 3).${NC}"
+    # Check if configurations are set by the user through our script
+    if [ -z "$TELEGRAM_CHAT_ID" ] || [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$EOA_WALLET_ADDRESS" ]; then
+        echo -e "${RED}❌ Telegram or EOA Wallet Address details are not set in this script's session.${NC}"
+        echo -e "${RED}Please enter Telegram & Wallet Details first (Option 2).${NC}"
         return 1
     fi
 
     echo -e "${CYAN}🚀 Starting gswarm with your configured details...${NC}"
-    echo -e "${CYAN}Chat ID: ${TELEGRAM_CHAT_ID}${NC}"
     echo -e "${CYAN}Bot Token (partial): ${TELEGRAM_BOT_TOKEN:0:5}****${NC}"
+    echo -e "${CYAN}Chat ID: ${TELEGRAM_CHAT_ID}${NC}"
     echo -e "${CYAN}Wallet Address: ${EOA_WALLET_ADDRESS}${NC}"
 
     # Corrected gswarm command with proper flags from its help output
@@ -149,8 +154,8 @@ while true; do
     echo -e "${YELLOW}${BOLD}║      🔵 GENSYN SWARM ROLL MENU 🔵    ║${NC}"
     echo -e "${YELLOW}${BOLD}╠═══════════════════════════════════════╣${NC}"
     echo -e "${YELLOW}${BOLD}║ [${YELLOW}1${NC}${BOLD}] ${PINK}📦 Install Go & gswarm            ${YELLOW}${BOLD}  ║${NC}"
-    echo -e "${YELLOW}${BOLD}║ [${YELLOW}2${NC}${BOLD}] ${PINK}💬 Enter Telegram Details         ${YELLOW}${BOLD} ║${NC}"
-    echo -e "${YELLOW}${BOLD}║ [${YELLOW}3${NC}${BOLD}] ${PINK}💳 Enter EOA Wallet Address      ${YELLOW}${BOLD} ║${NC}"
+    echo -e "${YELLOW}${BOLD}║ [${YELLOW}2${NC}${BOLD}] ${PINK}💬 Enter Telegram & Wallet Details${YELLOW}${BOLD} ║${NC}" # Updated text
+    echo -e "${YELLOW}${BOLD}║ [${YELLOW}3${NC}${BOLD}] ${PINK}🗣️ Go Discord for Roll           ${YELLOW}${BOLD} ║${NC}" # New option
     echo -e "${YELLOW}${BOLD}║ [${YELLOW}4${NC}${BOLD}] ${PINK}🚀 Run gswarm                    ${YELLOW}${BOLD} ║${NC}"
     echo -e "${YELLOW}${BOLD}║ [${YELLOW}0${NC}${BOLD}] ${PINK}👋 Exit                           ${YELLOW}${BOLD} ║${NC}"
     echo -e "${YELLOW}${BOLD}╚═══════════════════════════════════════╝${NC}"
@@ -159,8 +164,8 @@ while true; do
 
     case $choice in
         1) install_go_gswarm; read -p "Press Enter to continue..." ;;
-        2) enter_telegram_details; read -p "Press Enter to continue..." ;;
-        3) enter_eoa_wallet_address; read -p "Press Enter to continue..." ;;
+        2) enter_telegram_and_wallet_details; read -p "Press Enter to continue..." ;; # Function name updated here
+        3) go_discord_for_roll; read -p "Press Enter to continue..." ;; # New option handler
         4) run_gswarm; read -p "Press Enter to continue..." ;;
         0)
             echo -e "🚪 Exiting... Bye! 👋"
@@ -173,3 +178,4 @@ while true; do
     esac
 
 done
+�
