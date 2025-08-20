@@ -7,11 +7,10 @@ CYAN='\033[1;36m'       # Bold Cyan
 GREEN='\033[1;32m'      # Bold Green
 PINK='\033[38;5;198m'   # Deep Pink (Using 256-color code for specific shade)
 RED='\033[1;31m'        # Bold Red
-MAGENTA='\033[1;35m'    # Bold Magenta (New color for helper messages)
+MAGENTA='\033[1;35m'    # Bold Magenta
 NC='\033[0m'            # No Color
 
 # --- Global Variables for Configuration ---
-# These will store user inputs for Telegram and Wallet Address
 TELEGRAM_CHAT_ID=""
 TELEGRAM_BOT_TOKEN=""
 EOA_WALLET_ADDRESS=""
@@ -40,7 +39,7 @@ install_go_gswarm() {
         if ! wget -q https://go.dev/dl/go1.22.2.linux-amd64.tar.gz; then
             echo -e "${RED}❌ Failed to download Go. Please check your internet connection.${NC}"
             return 1
-        END_OF_GO_DOWNLOAD
+        fi # Corrected: 'fi' was missing or misplaced in previous version leading to syntax error
         sudo rm -rf /usr/local/go
         sudo tar -C /usr/local -xzf go1.22.2.linux-amd64.tar.gz
         rm go1.22.2.linux-amd64.tar.gz
@@ -82,28 +81,23 @@ install_go_gswarm() {
     return 0
 }
 
-enter_telegram_and_wallet_details() { # Function name updated
+enter_telegram_and_wallet_details() {
     echo -e "${GREEN}========== STEP 2: ENTER TELEGRAM & WALLET DETAILS ==========${NC}"
 
-    # Prompt for Bot Token with help message
     echo -e "${MAGENTA}💡 আপনার টেলিগ্রাম বট টোকেন @BotFather থেকে পান।${NC}"
     read -e -p "${PINK}Enter your Telegram Bot Token (e.g., 12345:ABC-DEF): ${NC}" BOT_TOKEN_INPUT
 
-    # Prompt for Chat ID with help message
     echo -e "${MAGENTA}💡 আপনার চ্যাট আইডি @userinfobot থেকে পান।${NC}"
     read -e -p "${PINK}Enter your Telegram Chat ID (e.g., 123456789): ${NC}" CHAT_ID_INPUT
 
-    # Prompt for EOA Wallet Address with help message
     echo -e "${MAGENTA}💡 আপনার EOA Wallet Address এখান থেকে পান: https://gensyn-tracker.shair.live/${NC}"
     read -e -p "${PINK}Enter your EOA Wallet Address (e.g., 0x...): ${NC}" EOA_ADDRESS_INPUT
 
-    # Basic validation for Telegram details
     if [[ -z "$BOT_TOKEN_INPUT" || -z "$CHAT_ID_INPUT" ]]; then
         echo -e "${RED}❌ Bot Token বা Chat ID খালি রাখা যাবে না! আবার চেষ্টা করুন।${NC}"
         return 1
     fi
 
-    # Basic validation for Ethereum address (starts with 0x and is 42 chars long)
     if [[ ! "$EOA_ADDRESS_INPUT" =~ ^0x[a-fA-F0-9]{40}$ ]]; then
         echo -e "${RED}❌ EOA Wallet Address এর ফরম্যাট সঠিক নয়। এটি '0x' দিয়ে শুরু হবে এবং ৪২ অক্ষরের হবে।${NC}"
         return 1
@@ -120,7 +114,7 @@ enter_telegram_and_wallet_details() { # Function name updated
     return 0
 }
 
-go_discord_for_roll() { # New function for Discord link
+go_discord_for_roll() {
     echo -e "${GREEN}========== STEP 3: GO DISCORD FOR ROLL ==========${NC}"
     echo -e "${CYAN}গুরুত্বপূর্ণ আপডেট এবং কমিউনিটি সাপোর্টের জন্য Gensyn Discord এ যোগ দিন:${NC}"
     echo -e "${PINK}🔗 ডিসকর্ড ইনভাইট লিঙ্ক: https://discord.com/invite/gensyn ${NC}"
@@ -137,7 +131,6 @@ run_gswarm() {
         return 1
     fi
 
-    # Check if configurations are set by the user through our script
     if [ -z "$TELEGRAM_CHAT_ID" ] || [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$EOA_WALLET_ADDRESS" ]; then
         echo -e "${RED}❌ টেলিগ্রাম বা EOA ওয়ালেট ঠিকানার বিবরণ এই স্ক্রিপ্টের সেশনে সেট করা নেই।${NC}"
         echo -e "${RED}অনুগ্রহ করে প্রথমে টেলিগ্রাম ও ওয়ালেটের বিবরণ লিখুন (অপশন ২)।${NC}"
@@ -149,7 +142,6 @@ run_gswarm() {
     echo -e "${CYAN}চ্যাট আইডি: ${TELEGRAM_CHAT_ID}${NC}"
     echo -e "${CYAN}ওয়ালেট ঠিকানা: ${EOA_WALLET_ADDRESS}${NC}"
 
-    # Corrected gswarm command with proper flags from its help output
     gswarm --telegram-chat-id "$TELEGRAM_CHAT_ID" --telegram-bot-token "$TELEGRAM_BOT_TOKEN" --eoa-address "$EOA_WALLET_ADDRESS"
 
     echo -e "${GREEN}gswarm কমান্ড এক্সিকিউট হয়েছে। স্ট্যাটাসের জন্য এর আউটপুট মনিটর করুন।${NC}"
